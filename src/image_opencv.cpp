@@ -26,6 +26,9 @@
 #include <opencv2/core/types.hpp>
 #include <opencv2/videoio/videoio.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
+#include "opencv2/core/core_c.h"
+#include "opencv2/videoio/legacy/constants_c.h"
+#include "opencv2/highgui/highgui_c.h"
 #endif
 
 // OpenCV includes for OpenCV 2.x
@@ -34,6 +37,9 @@
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/core/types_c.h>
 #include <opencv2/core/version.hpp>
+#include "opencv2/core/core_c.h"
+#include "opencv2/videoio/legacy/constants_c.h"
+#include "opencv2/highgui/highgui_c.h"
 #endif
 
 //using namespace cv;
@@ -971,11 +977,11 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 if (top < 0) top = 0;
                 if (bot > show_img->rows - 1) bot = show_img->rows - 1;
 
-                //int b_x_center = (left + right) / 2;
-                //int b_y_center = (top + bot) / 2;
-                //int b_width = right - left;
-                //int b_height = bot - top;
-                //sprintf(labelstr, "%d x %d - w: %d, h: %d", b_x_center, b_y_center, b_width, b_height);
+                int b_x_center = (left + right) / 2;
+                int b_y_center = (top + bot) / 2;
+                int b_width = right - left;
+                int b_height = bot - top;
+                // sprintf(labelstr, "%d x %d - w: %d, h: %d", b_x_center, b_y_center, b_width, b_height);
 
                 float const font_size = show_img->rows / 1000.F;
                 cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
@@ -997,21 +1003,24 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 color.val[2] = blue * 256;
 
                 // you should create directory: result_img
-                //static int copied_frame_id = -1;
-                //static IplImage* copy_img = NULL;
-                //if (copied_frame_id != frame_id) {
-                //    copied_frame_id = frame_id;
-                //    if(copy_img == NULL) copy_img = cvCreateImage(cvSize(show_img->width, show_img->height), show_img->depth, show_img->nChannels);
-                //    cvCopy(show_img, copy_img, 0);
-                //}
-                //static int img_id = 0;
-                //img_id++;
-                //char image_name[1024];
-                //sprintf(image_name, "result_img/img_%d_%d_%d_%s.jpg", frame_id, img_id, class_id, names[class_id]);
-                //CvRect rect = cvRect(pt1.x, pt1.y, pt2.x - pt1.x, pt2.y - pt1.y);
-                //cvSetImageROI(copy_img, rect);
-                //cvSaveImage(image_name, copy_img, 0);
-                //cvResetImageROI(copy_img);
+                static int copied_frame_id = -1;
+                // static IplImage* copy_img = NULL;
+                if (copied_frame_id != frame_id) {
+                   copied_frame_id = frame_id;
+                   // if(copy_img == NULL) copy_img = cvCreateImage(cvSize(show_img->width, show_img->height), show_img->depth, show_img->nChannels);
+                   // cvCopy(show_img, copy_img, 0);
+                }
+                static int img_id = 0;
+                img_id++;
+                char image_name[1024];
+                sprintf(image_name, "result_img/img_%s%d_%d_%d_%d_%d.jpg", names[class_id], dets[i].track_id, left, right, top, bot);
+                // CvRect rect = cvRect(pt1.x, pt1.y, pt2.x - pt1.x, pt2.y - pt1.y);
+                // cv::Mat copy_image = (*show_img)(rect);
+                // cv::imwrite(image_name, copy_image);
+                cv::imwrite(image_name, *show_img);
+                // cvSetImageROI(copy_img, rect);
+                // cvSaveImage(image_name, copy_img, 0);
+                // cvResetImageROI(copy_img);
 
                 cv::rectangle(*show_img, pt1, pt2, color, width, 8, 0);
                 if (ext_output)
